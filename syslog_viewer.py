@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import logging
 
 # Store logs in memory (keep last 1000 entries)
 log_buffer = deque(maxlen=1000)
@@ -113,6 +114,14 @@ if __name__ == '__main__':
     parser.add_argument('--web-port', type=int, default=8080, help='Web interface port (default: 8080)')
     parser.add_argument('--host', default='0.0.0.0', help='Host to bind to (default: 0.0.0.0)')
     args = parser.parse_args()
+
+    # Disable Flask's default request logging and warnings
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+
+    # Suppress Flask development server warning
+    from flask import cli as flask_cli
+    flask_cli.show_server_banner = lambda *args: None
 
     # Ensure log directory exists
     ensure_log_directory()
