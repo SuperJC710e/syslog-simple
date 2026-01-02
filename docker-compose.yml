@@ -2,7 +2,9 @@ name: syslog-viewer
 
 services:
   syslog-viewer:
-    build: .
+    image: ghcr.io/superjc710e/syslogserver-ng-container:latest
+    # Uncomment to build locally instead:
+    # build: .
     container_name: syslog-viewer
     ports:
       - "514:514/udp"    # Syslog UDP
@@ -11,5 +13,11 @@ services:
     restart: unless-stopped
     environment:
       - TZ=UTC
+    volumes:
+      - syslog-data:/app/logs
     # If you need to run on non-standard ports, uncomment and modify:
     # command: ["python", "syslog_viewer.py", "--syslog-port", "5140", "--web-port", "8080"]
+
+volumes:
+  syslog-data:
+    driver: local

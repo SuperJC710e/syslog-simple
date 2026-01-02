@@ -10,22 +10,59 @@ from datetime import datetime
 from collections import deque
 from flask import Flask, render_template, jsonify
 import argparse
+import json
+import os
+from pathlib import Path
 
 # Store logs in memory (keep last 1000 entries)
 log_buffer = deque(maxlen=1000)
+
+# Log file path
+LOG_DIR = Path('/app/logs')
+LOG_FILE = LOG_DIR / 'syslog.jsonl'
+
+def ensure_log_directory():
+    """Create log directory if it doesn't exist"""
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+def save_log_to_file(log_entry):
+    """Append log entry to file in JSON Lines format"""
+    try:
+        with open(LOG_FILE, 'a') as f:
+            f.write(json.dumps(log_entry) + '\n')
+    except Exception as e:
+        print(f"Error writing to log file: {e}")
+
+def load_logs_from_file():
+    """Load existing logs from file on startup"""
+    if not LOG_FILE.exists():
+        return
+
+    try:
+        with open(LOG_FILE, 'r') as f:
+            for line in f:
+                try:
+                    log_entry = json.loads(line.strip())
+                    log_buffer.append(log_entry)
+                except json.JSONDecodeError:
+                    continue
+        print(f"Loaded {len(log_buffer)} log entries from file")
+    except Exception as e:
+        print(f"Error loading logs from file: {e}")
 
 class SyslogUDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = bytes.decode(self.request[0].strip(), errors='ignore')
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         client_ip = self.client_address[0]
-        
+
         log_entry = {
             'timestamp': timestamp,
             'source': client_ip,
             'message': data
         }
         log_buffer.append(log_entry)
+        save_log_to_file(log_entry)
         print(f"[{timestamp}] {client_ip}: {data}")
 
 class SyslogTCPHandler(socketserver.BaseRequestHandler):
@@ -34,13 +71,14 @@ class SyslogTCPHandler(socketserver.BaseRequestHandler):
         data = bytes.decode(data, errors='ignore')
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         client_ip = self.client_address[0]
-        
+
         log_entry = {
             'timestamp': timestamp,
             'source': client_ip,
             'message': data
         }
         log_buffer.append(log_entry)
+        save_log_to_file(log_entry)
         print(f"[{timestamp}] {client_ip}: {data}")
 
 # Flask web interface
@@ -75,10 +113,16 @@ if __name__ == '__main__':
     parser.add_argument('--web-port', type=int, default=8080, help='Web interface port (default: 8080)')
     parser.add_argument('--host', default='0.0.0.0', help='Host to bind to (default: 0.0.0.0)')
     args = parser.parse_args()
-    
+
+    # Ensure log directory exists
+    ensure_log_directory()
+
+    # Load existing logs from file
+    load_logs_from_file()
+
     # Start syslog servers
     start_syslog_servers(udp_port=args.syslog_port, tcp_port=args.syslog_port, host=args.host)
-    
+
     # Start web interface
     print(f"Web interface starting on http://{args.host}:{args.web_port}")
     app.run(host=args.host, port=args.web_port, debug=False)

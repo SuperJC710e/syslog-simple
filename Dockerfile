@@ -23,9 +23,15 @@ COPY templates/ templates/
 # 8080 for web interface
 EXPOSE 514/udp 514/tcp 8080
 
+# Create logs directory
+RUN mkdir -p /app/logs
+
 # Run as non-root user for security
 RUN useradd -m -u 1000 syslog && chown -R syslog:syslog /app
 USER syslog
+
+# Define volume for persistent log storage
+VOLUME ["/app/logs"]
 
 # Start the application
 CMD ["python", "syslog_viewer.py"]
