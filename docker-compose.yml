@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  syslog-viewer:
+    build: .
+    container_name: syslog-viewer
+    ports:
+      - "514:514/udp"    # Syslog UDP
+      - "514:514/tcp"    # Syslog TCP
+      - "8080:8080"      # Web interface
+    restart: unless-stopped
+    environment:
+      - TZ=UTC
+    # If you need to run on non-standard ports, uncomment and modify:
+    # command: ["python", "syslog_viewer.py", "--syslog-port", "5140", "--web-port", "8080"]
