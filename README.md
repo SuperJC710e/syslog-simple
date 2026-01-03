@@ -36,7 +36,7 @@ Logs are persisted in the `./logs` directory on your host machine.
 
 ```bash
 # Pull the latest image
-docker pull ghcr.io/superjc710e/syslogserver-ng-container:latest
+docker pull ghcr.io/superjc710e/syslog-simple:latest
 
 # Run the container with persistent logs
 docker run -d \
@@ -44,8 +44,8 @@ docker run -d \
   -p 514:514/tcp \
   -p 8080:8080 \
   -v ./logs:/app/logs \
-  --name syslog-viewer \
-  ghcr.io/superjc710e/syslogserver-ng-container:latest
+  --name syslog-simple \
+  ghcr.io/superjc710e/syslog-simple:latest
 ```
 
 ### Building Locally
@@ -54,7 +54,7 @@ If you want to build the image yourself:
 
 ```bash
 # Build the image
-docker build -t syslog-viewer .
+docker build -t syslog-simple .
 
 # Run the container
 docker run -d \
@@ -62,8 +62,8 @@ docker run -d \
   -p 514:514/tcp \
   -p 8080:8080 \
   -v ./logs:/app/logs \
-  --name syslog-viewer \
-  syslog-viewer
+  --name syslog-simple \
+  syslog-simple
 ```
 
 ### Running Directly with Python
@@ -103,7 +103,7 @@ To customize log rotation in Docker Compose, modify the command in `docker-compo
 
 ```yaml
 services:
-  syslog-viewer:
+  syslog-simple:
     command: ["python", "syslog_viewer.py", "--max-size", "50", "--max-files", "5"]
 ```
 
@@ -192,8 +192,8 @@ ls -lh ./logs/
 Pre-built images are automatically published to GitHub Container Registry on every commit to the main branch:
 
 ```text
-ghcr.io/superjc710e/syslogserver-ng-container:latest
-ghcr.io/superjc710e/syslogserver-ng-container:main
+ghcr.io/superjc710e/syslog-simple:latest
+ghcr.io/superjc710e/syslog-simple:main
 ```
 
 The GitHub Actions workflow builds multi-platform images (amd64 and arm64).

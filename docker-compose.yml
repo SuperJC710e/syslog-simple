@@ -1,11 +1,11 @@
-name: syslog-viewer
+name: syslog-simple
 
 services:
-  syslog-viewer:
-    image: ghcr.io/superjc710e/syslogserver-ng-container:latest
+  syslog-simple:
+    image: ghcr.io/superjc710e/syslog-simple:latest
     # Uncomment to build locally instead:
     # build: .
-    container_name: syslog-viewer
+    container_name: syslog-simple
     ports:
       - "514:514/udp"    # Syslog UDP
       - "514:514/tcp"    # Syslog TCP
